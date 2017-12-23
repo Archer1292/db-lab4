@@ -1,11 +1,10 @@
-group 'DB'
+group 'DB2'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'jacoco'
 
 sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -13,17 +12,23 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile 'org.projectlombok:lombok:1.16.18'
-    compile 'org.neo4j:neo4j:3.3.1'
+    compile group: 'org.exquery', name: 'exquery-xquery3', version: '0.1.31'
+    compile files('saxon-he-9.3.0.5.jar')
 }
+sourceSets.test.java.srcDirs = ["src/test"]
+
 jar {
-    manifest{
-        attributes ('Main-Class' : 'Neo4jHandler')
+    manifest {
+        attributes(
+                'Main-Class': 'Main'
+        )
     }
 }
 
 task codeCoverageReport(type: JacocoReport) {
-    def coverageSourceDirs = [ 'src/main/java', ]
+    def coverageSourceDirs = [
+            'src/main/java',
+    ]
     executionData = fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
     classDirectories = fileTree(dir: "${project.buildDir}/classes/java/main")
     sourceDirectories = files(coverageSourceDirs)
@@ -44,22 +49,15 @@ codeCoverageReport.dependsOn {
     subprojects*.task(test)
 }
 
-jacoco {
-    toolVersion = "0.7.6.201602180812"
-    reportsDir = file("$buildDir/JacocoReportDir")
-}
-
 jacocoTestReport {
     reports {
         xml.enabled true
-        html.enabled true
-        csv.enabled true
-    }
-    afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: '**/*Main*')
-        })
+        html.enabled false
     }
 }
 
 check.dependsOn jacocoTestReport
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.14'
+}
